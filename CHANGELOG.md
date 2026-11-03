@@ -12,7 +12,8 @@
 - `tools/sync-chwd.sh` follows upstream: shows every chwd commit since the last sync, `--apply` copies the ID lists.
 - New `tools/check-chwd.sh` + daily user timer (`tools/systemd/kiro-hwd-chwd-check.{service,timer}`): sends a
   desktop notification when CachyOS chwd has commits past `ids/UPSTREAM`, saying whether the ID lists, the
-  profiles or only code changed. Not part of the package; it is a maintainer tool.
+  profiles or only code changed, and points to the `/kiro-hwd-sync` Claude Code command that runs the whole
+  review → apply → test → CHANGELOG → push flow. Not part of the package; it is a maintainer tool.
 
 ### Technical Details
 - Python 3, standard library only (`tomllib`); GPUs come from `/sys/bus/pci/devices`, so `lspci` output is not

@@ -138,7 +138,7 @@ main() {
     log_warn "chwd moved: $count commit(s) since ${CYAN}${synced:0:7}${RESET} -> ${head:0:7} ($areas)"
     git -C "$CLONE" log --oneline "$synced..$head"
     notify "CachyOS chwd moved: $count new commit(s)" \
-        "${synced:0:7} -> ${head:0:7}, changed: $areas. Review with kiro-hwd/tools/sync-chwd.sh"
+        "${synced:0:7} -> ${head:0:7}, changed: $areas. Run /kiro-hwd-sync in Claude Code"
     log_success "$(basename "$0") done"
 }
 
