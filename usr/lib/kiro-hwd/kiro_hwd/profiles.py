@@ -15,7 +15,6 @@ class Profile:
     desc: str
     ids: list[str]
     packages: list[str]
-    lib32: list[str]
     headers: bool
     fallback: bool = False
 
@@ -43,7 +42,7 @@ def load_profiles(path: Path) -> tuple[list[Profile], Prime]:
     """Profiles in file order, plus the prime settings."""
     data = tomllib.loads(path.read_text())
     profiles = [
-        Profile(name=name, desc=p["desc"], ids=p.get("ids", []), packages=p["packages"], lib32=p.get("lib32", []),
+        Profile(name=name, desc=p["desc"], ids=p.get("ids", []), packages=p["packages"],
                 headers=p.get("headers", False), fallback=p.get("fallback", False))
         for name, p in data["profile"].items()
     ]

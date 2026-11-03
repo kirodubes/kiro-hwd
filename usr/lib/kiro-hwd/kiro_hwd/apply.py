@@ -21,12 +21,10 @@ def kernel_headers(modules: Path = Path("/usr/lib/modules")) -> list[str]:
     return [f"{name}-headers" for name in sorted(names)]
 
 
-def package_list(choice: Choice, prime: Prime, multilib: bool, headers: list[str]) -> list[str]:
+def package_list(choice: Choice, prime: Prime, headers: list[str]) -> list[str]:
     """Every package the choice needs, in a stable order without duplicates."""
     profile = choice.profile
     pkgs = list(profile.packages)
-    if multilib:
-        pkgs += profile.lib32
     if profile.headers:
         pkgs += headers
     if choice.prime:

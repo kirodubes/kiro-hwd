@@ -17,7 +17,8 @@
 - Packages install as explicit `repo/package` names in the order core/extra/multilib → chaotic-aur → cachyos.
   When [cachyos] is commented out (installed Kiro), a temporary pacman.conf with it enabled is used; the full
   `-Syu` runs first with the system's own config, so no cachyos rebuild replaces a base package.
-- `lib32-*` only when [multilib] is enabled: chwd's profiles always asked for them, but Kiro ships [multilib] off.
+- No `lib32-*` packages: Kiro supports x86_64 only (chwd's profiles always asked for them, and Kiro ships
+  [multilib] off, so chwd's install could not complete).
 - `<pkgbase>-headers` for every installed kernel. Early KMS through `/etc/mkinitcpio.conf.d/10-kiro-hwd.conf`; the
   kms hook is dropped on desktops only (as chwd 1.23); no `cachyos-drm-awaiter`, no RTD3 workaround (upstream
   removed it, #283). `nvidia-powerd` is left off in v1.

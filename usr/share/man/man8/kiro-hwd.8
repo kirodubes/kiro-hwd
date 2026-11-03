@@ -34,8 +34,8 @@ Show the GPUs, the chosen profile and why. Needs no root.
 .B install
 Upgrade the system, then install the profile's packages. Each package comes from the first repo that has it:
 the Arch repos, then chaotic-aur, then cachyos. When [cachyos] is commented out in /etc/pacman.conf, a temporary
-copy with it enabled is used; /etc/pacman.conf is never changed. 32-bit packages are only added when [multilib]
-is enabled. Writes /etc/mkinitcpio.conf.d/10-kiro-hwd.conf (early NVIDIA modules) and, on desktops,
+copy with it enabled is used; /etc/pacman.conf is never changed. Kiro supports x86_64 only, so no 32-bit (lib32)
+packages are installed. Writes /etc/mkinitcpio.conf.d/10-kiro-hwd.conf (early NVIDIA modules) and, on desktops,
 10-kiro-hwd-kms.conf (drops the kms hook), and records the result in /var/lib/kiro-hwd/state. Stops when
 another NVIDIA driver branch is installed. Run mkinitcpio -P afterwards (the Kiro installer does this).
 .TP

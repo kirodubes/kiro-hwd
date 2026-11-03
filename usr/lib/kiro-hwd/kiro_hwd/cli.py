@@ -64,10 +64,7 @@ def cmd_install(args: argparse.Namespace) -> int:
         return 0
 
     etc_conf = Path("/etc/pacman.conf")
-    multilib = "multilib" in repos.enabled_repos(etc_conf.read_text())
-    wanted = apply.package_list(choice, prime, multilib, apply.kernel_headers())
-    if not multilib:
-        print("Note     [multilib] is off: the 32-bit driver libraries are left out (Steam needs them).")
+    wanted = apply.package_list(choice, prime, apply.kernel_headers())
 
     conflicts = apply.conflicting_drivers(apply.installed_packages(), wanted)
     if conflicts:

@@ -104,13 +104,13 @@ class ApplyTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_package_list_multilib_headers_prime(self):
+    def test_package_list_headers_prime_no_lib32(self):
         choice = profiles.Choice(self.open, self.gpu, prime=True)
-        pkgs = apply.package_list(choice, self.prime, multilib=False, headers=["linux-cachyos-headers"])
+        pkgs = apply.package_list(choice, self.prime, headers=["linux-cachyos-headers"])
         self.assertNotIn("lib32-nvidia-utils", pkgs)
         self.assertIn("linux-cachyos-headers", pkgs)
         self.assertIn("switcheroo-control", pkgs)
-        self.assertIn("lib32-nvidia-utils", apply.package_list(choice, self.prime, True, []))
+        self.assertFalse([p for p in pkgs if p.startswith("lib32-")])
 
     def test_kernel_headers_from_pkgbase(self):
         for kver, base in (("6.17.1-1-cachyos", "linux-cachyos"), ("6.17.1-zen1", "linux-zen")):
