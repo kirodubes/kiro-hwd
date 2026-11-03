@@ -14,6 +14,15 @@
   desktop notification when CachyOS chwd has commits past `ids/UPSTREAM`, saying whether the ID lists, the
   profiles or only code changed, and points to the `/kiro-hwd-sync` Claude Code command that runs the whole
   review → apply → test → CHANGELOG → push flow. Not part of the package; it is a maintainer tool.
+- **Tested on real hardware the same day** (KiroTux v26.11.03 test ISOs, installer boot entries):
+  - Pascal laptop (Intel UHD 630 + GTX 1050 Ti), auto-detect entry: profile `nvidia-580xx + prime`, all four
+    580xx packages from chaotic-aur, `nvidia-prime` + `switcheroo-control` added; the `nvidia` module loads,
+    `prime-run` renders on the GTX 1050 Ti and `switcherooctl` lists both GPUs with Intel as default.
+  - Turing desktop (RTX 2060), auto-detect entry: profile `nvidia-open`, the baked `nvidia-open-dkms` kept and only
+    `nvidia-settings` + `opencl-nvidia` added; both mkinitcpio drop-ins written; `nvidia-smi` reports 615.78.08.
+  - Same desktop, open-drivers entry (`driver=free`): kiro-hwd skipped, NVIDIA stack removed, nouveau + NVK
+    renders. `kiro-hwd detect` and `install --dry-run` on that install still pick `nvidia-open` correctly.
+  - Not yet tested: the `nouveau` profile on a Kepler-or-older card, and a run with no NVIDIA GPU (VM).
 
 ### Technical Details
 - Python 3, standard library only (`tomllib`); GPUs come from `/sys/bus/pci/devices`, so `lspci` output is not
