@@ -1,0 +1,42 @@
+# kiro-hwd driver profiles: Kiro's own choices.
+# Only the PCI ID lists in ids/ come from CachyOS chwd (see ids/UPSTREAM); everything here is Kiro's.
+#
+# Profiles run oldest driver to newest: with several NVIDIA GPUs the newest wins.
+# A GPU gets the first profile whose `ids` lists contain its device ID; a GPU on no list gets the profile
+# marked `fallback`. `packages` install from the first repo that has them: Arch repos, then chaotic-aur,
+# then cachyos. `lib32` packages only install when [multilib] is enabled.
+
+# Kepler and older: upstream dropped its 470xx profile and Kiro targets newer machines,
+# so these cards stay on the open nouveau driver the ISO already ships.
+[profile.nouveau]
+desc = "open nouveau driver (Kepler and older, no supported proprietary branch)"
+ids = ["nvidia-470", "nvidia-390", "nouveau"]
+packages = []
+lib32 = []
+headers = false
+
+[profile.nvidia-580xx]
+desc = "NVIDIA 580xx legacy branch (Maxwell, Pascal, Volta)"
+ids = ["nvidia-580"]
+packages = [
+    "nvidia-580xx-dkms", "nvidia-580xx-utils", "nvidia-580xx-settings", "opencl-nvidia-580xx",
+    "libva-nvidia-driver", "vulkan-icd-loader",
+]
+lib32 = ["lib32-nvidia-580xx-utils", "lib32-opencl-nvidia-580xx", "lib32-vulkan-icd-loader"]
+headers = true
+
+[profile.nvidia-open]
+desc = "NVIDIA open kernel modules (Turing and newer)"
+fallback = true
+packages = [
+    "nvidia-open-dkms", "nvidia-utils", "egl-wayland", "nvidia-settings", "opencl-nvidia",
+    "libva-nvidia-driver", "vulkan-icd-loader",
+]
+lib32 = ["lib32-nvidia-utils", "lib32-opencl-nvidia", "lib32-vulkan-icd-loader"]
+headers = true
+
+# Laptop with an NVIDIA GPU next to an Intel or AMD iGPU: render offload only, no GPU switching.
+[prime]
+chassis_types = [8, 9, 10, 11, 31]
+packages = ["nvidia-prime", "switcheroo-control"]
+services = ["switcheroo-control.service"]

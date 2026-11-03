@@ -1,0 +1,57 @@
+.TH KIRO-HWD 8 "2026-11-03" "kiro-hwd" "Kiro system tools"
+.SH NAME
+kiro-hwd \- pick and install the NVIDIA driver for this machine
+.SH SYNOPSIS
+.B kiro-hwd
+.RB [ \-\-version ]
+.br
+.B kiro-hwd detect
+.br
+.B kiro-hwd install
+.RB [ \-\-dry\-run ]
+.SH DESCRIPTION
+.B kiro-hwd
+reads the display devices from sysfs, looks up each NVIDIA device ID in the PCI ID lists mirrored from
+CachyOS chwd, and picks one of Kiro's driver profiles:
+.TP
+.B nvidia-580xx
+Maxwell, Pascal and Volta cards (the nvidia-580 list).
+.TP
+.B nouveau
+Kepler and older (the nvidia-470, nvidia-390 and nouveau lists): nothing is installed, the open nouveau
+driver stays.
+.TP
+.B nvidia-open
+every other NVIDIA card (Turing and newer).
+.PP
+A laptop (chassis type 8, 9, 10, 11 or 31) with an Intel or AMD iGPU next to the NVIDIA card also gets
+nvidia-prime and switcheroo-control for render offload. kiro-hwd does not switch GPU modes.
+.SH COMMANDS
+.TP
+.B detect
+Show the GPUs, the chosen profile and why. Needs no root.
+.TP
+.B install
+Upgrade the system, then install the profile's packages. Each package comes from the first repo that has it:
+the Arch repos, then chaotic-aur, then cachyos. When [cachyos] is commented out in /etc/pacman.conf, a temporary
+copy with it enabled is used; /etc/pacman.conf is never changed. 32-bit packages are only added when [multilib]
+is enabled. Writes /etc/mkinitcpio.conf.d/10-kiro-hwd.conf (early NVIDIA modules) and, on desktops,
+10-kiro-hwd-kms.conf (drops the kms hook), and records the result in /var/lib/kiro-hwd/state. Stops when
+another NVIDIA driver branch is installed. Run mkinitcpio -P afterwards (the Kiro installer does this).
+.TP
+.B install \-\-dry\-run
+Show the packages and the repo each comes from; install nothing. Needs no root.
+.SH ENVIRONMENT
+.TP
+.B KIRO_HWD_SYSFS, KIRO_HWD_CHASSIS
+For testing only: read the PCI devices from another directory and use this chassis type.
+.SH FILES
+.TP
+/usr/share/kiro-hwd/profiles.toml
+Kiro's driver profiles.
+.TP
+/usr/share/kiro-hwd/ids/
+PCI ID lists from CachyOS chwd (GPL-3.0-or-later); UPSTREAM names the synced commit.
+.SH SEE ALSO
+.BR pacman (8),
+.BR mkinitcpio (8)
