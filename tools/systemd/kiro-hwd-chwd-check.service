@@ -1,0 +1,7 @@
+[Unit]
+Description=Check CachyOS chwd for upstream changes kiro-hwd has not reviewed
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/KIRO/kiro-hwd/tools/check-chwd.sh

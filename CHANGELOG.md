@@ -10,6 +10,9 @@
   first, cachyos as fallback), `nouveau` (Kepler and older: nothing installed, like upstream's 470xx drop at
   b5278a3 and Kiro's newer-machines rule). Laptops with an iGPU add `nvidia-prime` + `switcheroo-control`.
 - `tools/sync-chwd.sh` follows upstream: shows every chwd commit since the last sync, `--apply` copies the ID lists.
+- New `tools/check-chwd.sh` + daily user timer (`tools/systemd/kiro-hwd-chwd-check.{service,timer}`): sends a
+  desktop notification when CachyOS chwd has commits past `ids/UPSTREAM`, saying whether the ID lists, the
+  profiles or only code changed. Not part of the package; it is a maintainer tool.
 
 ### Technical Details
 - Python 3, standard library only (`tomllib`); GPUs come from `/sys/bus/pci/devices`, so `lspci` output is not
@@ -31,4 +34,5 @@
 - `usr/share/kiro-hwd/profiles.toml`, `usr/share/kiro-hwd/ids/{nvidia-580,nvidia-470,nvidia-390,nouveau}.ids`,
   `usr/share/kiro-hwd/ids/UPSTREAM`
 - `usr/share/man/man8/kiro-hwd.8`, `tools/sync-chwd.sh`, `tests/test_kiro_hwd.py`
+- `tools/check-chwd.sh`, `tools/systemd/kiro-hwd-chwd-check.{service,timer}`, `README.md`
 - `README.md`, `CHANGELOG.md`, `CLAUDE.md`, `LICENSE`, `ruff.toml`, `setup.sh`, `up.sh`, `.gitignore`

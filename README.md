@@ -25,6 +25,14 @@ The Kiro installer runs `kiro-hwd install` on the boot entry "NVIDIA proprietary
 The PCI ID lists in `usr/share/kiro-hwd/ids/` come from [CachyOS chwd](https://github.com/CachyOS/chwd)
 (GPL-3.0-or-later); `ids/UPSTREAM` names the commit they were taken from. The profiles, package choices and
 install logic are Kiro's own. `tools/sync-chwd.sh` shows every upstream change since the last sync.
+`tools/check-chwd.sh`, run daily by the user timer in `tools/systemd/`, sends a desktop notification when
+upstream has moved past that commit:
+
+```
+ln -s "$PWD"/tools/systemd/kiro-hwd-chwd-check.{service,timer} ~/.config/systemd/user/
+systemctl --user daemon-reload
+systemctl --user enable --now kiro-hwd-chwd-check.timer
+```
 
 ## Tests
 
