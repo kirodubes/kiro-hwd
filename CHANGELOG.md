@@ -23,6 +23,9 @@
   - Same desktop, open-drivers entry (`driver=free`): kiro-hwd skipped, NVIDIA stack removed, nouveau + NVK
     renders. `kiro-hwd detect` and `install --dry-run` on that install still pick `nvidia-open` correctly.
   - Not yet tested: the `nouveau` profile on a Kepler-or-older card, and a run with no NVIDIA GPU (VM).
+    _Both tested later the same day:_ `nouveau` on a Fermi GT 620M laptop (legacy BIOS, Kiro v26.11.03 line 3:
+    stack removed, "Nothing to install.", nouveau + `DRI_PRIME=1` → NVC1, kiro-audit 131/0/0), and no NVIDIA GPU in
+    VirtualBox (Kiro) and QEMU (KiroTux hyprland-dms): "no NVIDIA GPU found", "Nothing to install.".
 
 ### Technical Details
 - Python 3, standard library only (`tomllib`); GPUs come from `/sys/bus/pci/devices`, so `lspci` output is not
