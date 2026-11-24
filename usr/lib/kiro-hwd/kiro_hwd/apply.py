@@ -7,6 +7,11 @@ from pathlib import Path
 from .profiles import Choice, Prime
 
 MKINITCPIO_DIR = Path("/etc/mkinitcpio.conf.d")
+MODPROBE_DIR = Path("/etc/modprobe.d")
+MODPROBE_FILE = "10-kiro-hwd-nvidia.conf"
+# Fine-grained runtime D3: Turing laptops need it set; Ampere+ get it from the driver default, older cards
+# and desktops don't support it.
+TURING_POWER = "options nvidia NVreg_DynamicPowerManagement=0x02\n"
 STATE_FILE = Path("/var/lib/kiro-hwd/state")
 NVIDIA_MODULES = "MODULES+=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)\n"
 DROP_KMS_HOOK = "HOOKS=(${HOOKS[@]/kms/})\n"
@@ -56,6 +61,22 @@ def write_mkinitcpio(choice: Choice, conf_dir: Path = MKINITCPIO_DIR) -> list[Pa
         kms.write_text(HEADER + DROP_KMS_HOOK)
         written.append(kms)
     return written
+
+
+def needs_turing_power(choice: Choice, turing_ids: set[str]) -> bool:
+    """True on a PRIME laptop whose NVIDIA GPU is Turing."""
+    return bool(choice.prime and choice.gpu and choice.gpu.device in turing_ids)
+
+
+def write_modprobe(choice: Choice, turing_ids: set[str], conf_dir: Path = MODPROBE_DIR) -> list[Path]:
+    """Write the Turing laptop power option, or remove a stale one on any other machine."""
+    conf = conf_dir / MODPROBE_FILE
+    if not needs_turing_power(choice, turing_ids):
+        conf.unlink(missing_ok=True)
+        return []
+    conf_dir.mkdir(parents=True, exist_ok=True)
+    conf.write_text(HEADER + TURING_POWER)
+    return [conf]
 
 
 def enable_services(services: list[str]) -> None:

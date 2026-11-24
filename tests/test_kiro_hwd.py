@@ -130,6 +130,25 @@ class ApplyTests(unittest.TestCase):
         self.assertEqual([p.name for p in prime], ["10-kiro-hwd.conf"])
         self.assertFalse((self.root / "10-kiro-hwd-kms.conf").exists())
 
+    def test_turing_list_has_gpus_only(self):
+        turing = profiles.load_id_file(DATA / "turing.ids")
+        self.assertTrue({"1f95", "1f08", "2191"} <= turing)
+        self.assertFalse({"1c8c", "2504", "10f8"} & turing)
+        self.assertFalse([i for i in turing if len(i) != 4])
+
+    def test_modprobe_only_on_turing_laptop(self):
+        turing = profiles.load_id_file(DATA / "turing.ids")
+        conf = self.root / apply.MODPROBE_FILE
+        cases = (("1f95", True, True), ("1f08", False, False), ("1c8c", True, False), ("2520", True, False))
+        for device, prime, wanted in cases:
+            gpu = detect.Gpu("0000:01:00.0", "10de", device, "0302")
+            written = apply.write_modprobe(profiles.Choice(self.open, gpu, prime=prime), turing, self.root)
+            with self.subTest(device=device, prime=prime):
+                self.assertEqual(bool(written), wanted)
+                self.assertEqual(conf.exists(), wanted)
+                if wanted:
+                    self.assertIn("NVreg_DynamicPowerManagement=0x02", conf.read_text())
+
     def test_state_file(self):
         state = self.root / "state"
         apply.write_state(profiles.Choice(self.open, self.gpu), [("extra", "nvidia-utils")], "kiro-hwd 26.11-01", state)

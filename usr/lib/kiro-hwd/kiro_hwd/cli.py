@@ -1,4 +1,4 @@
-"""Command line: kiro-hwd detect | kiro-hwd install [--dry-run]."""
+"""Command line: kiro-hwd detect | kiro-hwd install [--dry-run] | kiro-hwd power."""
 
 import argparse
 import os
@@ -36,6 +36,15 @@ def _choice(data: Path) -> tuple[profiles.Choice, profiles.Prime, list[detect.Gp
     return profiles.choose(gpus, profile_list, prime, ids, chassis_type), prime, gpus
 
 
+def _turing_ids() -> set[str]:
+    return profiles.load_id_file(_data_dir() / "turing.ids")
+
+
+def _modprobe_dir() -> Path:
+    # Test hook, like KIRO_HWD_SYSFS: write the modprobe file somewhere harmless
+    return Path(os.environ.get("KIRO_HWD_MODPROBE_DIR", str(apply.MODPROBE_DIR)))
+
+
 def _print_choice(choice: profiles.Choice, gpus: list[detect.Gpu]) -> None:
     for gpu in gpus:
         print(f"GPU      {gpu.label()}")
@@ -43,12 +52,26 @@ def _print_choice(choice: profiles.Choice, gpus: list[detect.Gpu]) -> None:
         print(f"Profile  {choice.profile.name}{' + prime' if choice.prime else ''}: {choice.profile.desc}")
     for reason in choice.reasons:
         print(f"Reason   {reason}")
+    if apply.needs_turing_power(choice, _turing_ids()):
+        print("Reason   Turing laptop: NVreg_DynamicPowerManagement=0x02")
 
 
 def cmd_detect(_args: argparse.Namespace) -> int:
     """Show the GPUs and the profile kiro-hwd would pick."""
     choice, _prime, gpus = _choice(_data_dir())
     _print_choice(choice, gpus)
+    return 0
+
+
+def cmd_power(_args: argparse.Namespace) -> int:
+    """Write or remove the Turing laptop power option only (offline; run on package upgrade)."""
+    choice, _prime, _gpus = _choice(_data_dir())
+    conf_dir = _modprobe_dir()
+    written = apply.write_modprobe(choice, _turing_ids(), conf_dir)
+    for path in written:
+        print(f"Wrote    {path}")
+    if not written:
+        print(f"Removed  {conf_dir / apply.MODPROBE_FILE} (if present): not a Turing laptop")
     return 0
 
 
@@ -93,7 +116,7 @@ def cmd_install(args: argparse.Namespace) -> int:
         subprocess.run(["pacman", "--config", str(conf), "-S", "--needed", "--noconfirm",
                         *[f"{repo}/{pkg}" for repo, pkg in found]], check=True)
 
-    for path in apply.write_mkinitcpio(choice):
+    for path in apply.write_mkinitcpio(choice) + apply.write_modprobe(choice, _turing_ids(), _modprobe_dir()):
         print(f"Wrote    {path}")
     if choice.prime:
         apply.enable_services(prime.services)
@@ -111,6 +134,7 @@ def main(argv: list[str] | None = None) -> int:
     install = sub.add_parser("install", help="install the driver for this machine")
     install.add_argument("--dry-run", action="store_true", help="show the packages and repos, install nothing")
     install.set_defaults(func=cmd_install)
+    sub.add_parser("power", help="write or remove the Turing laptop power option only").set_defaults(func=cmd_power)
     args = parser.parse_args(argv)
     if args.version:
         print(_version())

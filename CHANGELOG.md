@@ -5,9 +5,28 @@
 ### What Changed
 - Synced with CachyOS chwd `b5278a3..93a2117` (6 commits, CachyOS 2611 release). No ID list changed, so no card
   moves to a different profile; only the `ids/UPSTREAM` pin moved to `93a2117` (2026-11-22).
-- All three upstream profile changes reviewed and left out (decided with Erik); nothing changes for users.
+- All three upstream profile changes reviewed and left out (decided with Erik).
+- **Turing laptops get fine-grained GPU power saving from kiro-hwd.** `NVreg_DynamicPowerManagement=0x02` is now
+  written to `/etc/modprobe.d/10-kiro-hwd-nvidia.conf` only on a PRIME laptop with a Turing GPU (GTX 16xx, RTX 20xx,
+  MX450/550). kiro-system-files used to set it on every NVIDIA machine, desktops and pre-Turing cards included,
+  where it does nothing useful; Ampere and newer already get it from the driver default. Same split as CachyOS chwd
+  `2305306`, and CachyOS's 2611 release dropped the global value too.
+- New `kiro-hwd power`: writes or removes only that file, offline. The package runs it on upgrade, so a Turing laptop
+  installed from v26.11.03 keeps the setting when kiro-system-files drops its global line.
 
 ### Technical Details
+- `usr/share/kiro-hwd/turing.ids` is Kiro-owned, outside `ids/` (which stays upstream-only): 112 GPU device IDs
+  whose pci.ids name starts with `TU1` (hwdata 0.412-1), without the TU10x/TU116 audio, USB and UCSI functions.
+  Turing is a finished generation, so it is never synced. Read by `profiles.load_id_file()`, which skips `#` lines.
+- `apply.write_modprobe()` sits beside `write_mkinitcpio()` and follows the same write-or-unlink pattern; the
+  installer's initramfs rebuild picks it up through the `modconf` hook. On an upgraded system the option takes
+  effect at the next initramfs rebuild (next kernel update or `mkinitcpio -P`), together with the removal in
+  kiro-system-files, so there is no window with neither.
+- PKGBUILD gets `kiro-hwd.install` with `post_upgrade` only: `post_install` also runs in the ISO build chroot, where
+  sysfs would be the build host's hardware.
+- Test hook `KIRO_HWD_MODPROBE_DIR`, like `KIRO_HWD_SYSFS`. Two new tests: the list holds GPUs only; the file is
+  written on a Turing laptop and removed on a Turing desktop, a Pascal laptop and an Ampere laptop.
+- No Turing laptop among the test boxes: the write path is covered by the tests and a fake-sysfs run on hq only.
 - `6de7e5c` (580xx uses prebuilt `linux-cachyos-nvidia-580xx` on linux-cachyos kernels, DKMS as fallback): skipped.
   With kiro-hwd's repo order the kernel comes from chaotic-aur (7.3.6-1 at review time) while the prebuilt module in
   cachyos is built against cachyos's own kernel (7.3.5-2); mixing them gives a module that doesn't match the kernel
@@ -21,11 +40,15 @@
 - `be77fd9` (Arrow Lake added to the intel-lpmd profile): skipped. kiro-hwd has no power-management profile;
   adding intel-lpmd would be a new feature, not a sync.
 - `93a2117`, `151a128`, `200c16f`: translations only (Basque, French, Italian).
-- `ruff check .` clean, 15 unit tests pass.
+- `ruff check .` clean, 17 unit tests pass.
 
 ### Files Modified
 - `usr/share/kiro-hwd/ids/UPSTREAM`
-- `CHANGELOG.md`
+- `usr/share/kiro-hwd/turing.ids` (new)
+- `usr/lib/kiro-hwd/kiro_hwd/apply.py`, `cli.py`, `profiles.py`
+- `tests/test_kiro_hwd.py`
+- `README.md`, `CHANGELOG.md`
+- `~/KIRO-PKG-BUILD-APPS/kiro-hwd/PKGBUILD`, `kiro-hwd.install` (new)
 
 ## 2026.11.03
 

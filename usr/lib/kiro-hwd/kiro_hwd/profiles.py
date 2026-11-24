@@ -55,6 +55,12 @@ def load_ids(ids_dir: Path) -> dict[str, set[str]]:
     return {f.stem: set(f.read_text().lower().split()) for f in sorted(ids_dir.glob("*.ids"))}
 
 
+def load_id_file(path: Path) -> set[str]:
+    """One Kiro-owned ID list: lowercase device IDs, '#' lines are comments."""
+    lines = [line for line in path.read_text().lower().splitlines() if not line.lstrip().startswith("#")]
+    return set(" ".join(lines).split())
+
+
 def _profile_for(gpu: Gpu, profiles: list[Profile], ids: dict[str, set[str]]) -> tuple[Profile, str]:
     for profile in profiles:
         for list_name in profile.ids:

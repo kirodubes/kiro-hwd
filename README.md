@@ -15,7 +15,12 @@ switching).
 kiro-hwd detect               # what is in this machine, which profile, why
 kiro-hwd install --dry-run    # which packages from which repo
 sudo kiro-hwd install         # install it
+sudo kiro-hwd power           # only the Turing laptop power option (runs on package upgrade)
 ```
+
+On a laptop with a Turing GPU (`usr/share/kiro-hwd/turing.ids`, Kiro's own list) kiro-hwd writes
+`/etc/modprobe.d/10-kiro-hwd-nvidia.conf` with `NVreg_DynamicPowerManagement=0x02`; on every other machine it
+removes that file.
 
 The Kiro installer runs `kiro-hwd install` on the boot entry "NVIDIA proprietary, auto-detect"
 (`driver=nonfreechwd`).

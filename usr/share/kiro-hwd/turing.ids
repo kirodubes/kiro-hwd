@@ -1,0 +1,4 @@
+# Kiro-owned: NVIDIA Turing (TU1xx) GPU device IDs, the cards that need NVreg_DynamicPowerManagement=0x02 on a
+# laptop. Generated 2026-11-24 from hwdata 0.412-1 (pci.ids names starting with TU1, without the audio, USB and
+# UCSI functions). Turing is a finished generation, so this list is not synced from upstream.
+1e02 1e03 1e04 1e07 1e09 1e2d 1e2e 1e30 1e35 1e36 1e37 1e38 1e3c 1e3d 1e3e 1e78 1e81 1e82 1e84 1e87 1e89 1e90 1e91 1e93 1eab 1eae 1eb0 1eb1 1eb4 1eb5 1eb6 1eb8 1eb9 1eba 1ebe 1ec2 1ec7 1ed0 1ed1 1ed3 1ef5 1f02 1f03 1f04 1f06 1f07 1f08 1f09 1f0a 1f0b 1f10 1f11 1f12 1f14 1f15 1f2e 1f36 1f42 1f47 1f50 1f51 1f54 1f55 1f76 1f81 1f82 1f83 1f91 1f92 1f94 1f95 1f96 1f97 1f98 1f99 1f9c 1f9d 1f9f 1fa0 1fa1 1fae 1fb0 1fb1 1fb2 1fb6 1fb7 1fb8 1fb9 1fba 1fbb 1fbc 1fbf 1fd9 1fdd 1ff0 1ff2 1ff9 2182 2183 2184 2186 2187 2188 2189 2191 2192 21ae 21bf 21c2 21c3 21c4 21d1
