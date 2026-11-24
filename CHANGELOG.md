@@ -13,6 +13,9 @@
   cachyos is built against cachyos's own kernel (7.3.5-2); mixing them gives a module that doesn't match the kernel
   or a forced downgrade. `nvidia-580xx-dkms` + `<kernel>-headers` builds against whatever kernel is installed.
   Revisit only if Kiro takes linux-cachyos from the cachyos repo.
+  Second reason, independent of repo order: upstream installs prebuilt modules only for `linux-cachyos*` kernels and
+  uses DKMS only when none is installed, so v26.12.01's backup kernel `linux-lts` would boot without the NVIDIA
+  driver on Maxwell/Pascal/Volta. DKMS builds the module for every installed kernel.
 - `03fb451` (fallback profile for every GPU vendor, installs mesa): skipped. kiro-hwd handles NVIDIA only; the ISO
   already ships mesa.
 - `be77fd9` (Arrow Lake added to the intel-lpmd profile): skipped. kiro-hwd has no power-management profile;
