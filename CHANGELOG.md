@@ -1,5 +1,29 @@
 # CHANGELOG
 
+## 2026.11.24
+
+### What Changed
+- Synced with CachyOS chwd `b5278a3..93a2117` (6 commits, CachyOS 2611 release). No ID list changed, so no card
+  moves to a different profile; only the `ids/UPSTREAM` pin moved to `93a2117` (2026-11-22).
+- All three upstream profile changes reviewed and left out (decided with Erik); nothing changes for users.
+
+### Technical Details
+- `6de7e5c` (580xx uses prebuilt `linux-cachyos-nvidia-580xx` on linux-cachyos kernels, DKMS as fallback): skipped.
+  With kiro-hwd's repo order the kernel comes from chaotic-aur (7.3.6-1 at review time) while the prebuilt module in
+  cachyos is built against cachyos's own kernel (7.3.5-2); mixing them gives a module that doesn't match the kernel
+  or a forced downgrade. `nvidia-580xx-dkms` + `<kernel>-headers` builds against whatever kernel is installed.
+  Revisit only if Kiro takes linux-cachyos from the cachyos repo.
+- `03fb451` (fallback profile for every GPU vendor, installs mesa): skipped. kiro-hwd handles NVIDIA only; the ISO
+  already ships mesa.
+- `be77fd9` (Arrow Lake added to the intel-lpmd profile): skipped. kiro-hwd has no power-management profile;
+  adding intel-lpmd would be a new feature, not a sync.
+- `93a2117`, `151a128`, `200c16f`: translations only (Basque, French, Italian).
+- `ruff check .` clean, 15 unit tests pass.
+
+### Files Modified
+- `usr/share/kiro-hwd/ids/UPSTREAM`
+- `CHANGELOG.md`
+
 ## 2026.11.03
 
 ### What Changed
