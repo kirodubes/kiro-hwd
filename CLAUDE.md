@@ -6,6 +6,10 @@ build dir `~/KIRO-PKG-BUILD-APPS/kiro-hwd`, flow `flow-kiro-hwd`. Design and dec
 
 ## Rules
 
+- **Testing twin: `~/KIRO/kiro-hwd-nemesis`** (package `kiro-hwd-nemesis`, flow `flow-kiro-hwd-nemesis`, shipped on
+  kiro-iso-next only). Make every change there first and test it on kiro-iso-next; then copy the tree here. This
+  package reaches every Kiro and KIROTUX user on their next update.
+
 - **Independent of chwd.** Only `usr/share/kiro-hwd/ids/*.ids` come from upstream, via `tools/sync-chwd.sh`.
   Never copy chwd profiles or hooks; read them, decide, and write Kiro's own choice into `profiles.toml`.
 - **Every upstream push is reviewed.** `tools/sync-chwd.sh` (review) → decide → `--apply` → tests → version bump
