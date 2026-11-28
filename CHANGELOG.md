@@ -17,7 +17,9 @@
 - `apply.py`: `nvidia_utils_version()` (`pacman -Q nvidia-utils`), `needs_flip_fix()` (`FLIP_BRANCHES = ("620.",)`;
   drop the branch once NVIDIA ships a fix in it), `write_flip_fix()` returns the file and whether it changed.
 - New command `kiro-hwd flip-fix`; when the file changed and nvidia is in the initramfs (`10-kiro-hwd.conf`), it runs
-  `mkinitcpio -P`, because the modprobe options are baked into the initramfs then. `kiro-hwd install` writes the file
+  `mkinitcpio -P`, because the modprobe options are baked into the initramfs then (the kiro-hwd upgrade path). The
+  hook passes `--no-initramfs`: `nvidia-utils` never changes without `nvidia-open-dkms`, whose `dkms.conf` triggers
+  `90-mkinitcpio-install.hook` after `70-dkms-*`; a rebuild from our 60- hook would run before the new modules exist. `kiro-hwd install` writes the file
   too, and `detect`/`install` print the reason.
 - New pacman hook `usr/share/libalpm/hooks/60-kiro-hwd-flip.hook` on install, upgrade and removal of `nvidia-utils`.
   Version-based on purpose: the installer's default `driver=nonfree` entry keeps the ISO's baked-in driver and never

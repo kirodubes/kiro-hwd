@@ -1,6 +1,6 @@
 # Keep the NVIDIA 620 flip-timeout option in step with the installed nvidia-utils (NVIDIA bug 7126445).
 # Version-based, no hardware detection, so it is also right in the ISO build chroot. Runs before
-# 90-mkinitcpio-install.hook; kiro-hwd rebuilds the initramfs itself when nvidia is in it.
+# 90-mkinitcpio-install.hook, which rebuilds the initramfs after DKMS (a driver change also changes dkms.conf).
 [Trigger]
 Operation = Install
 Operation = Upgrade
@@ -11,4 +11,4 @@ Target = nvidia-utils
 [Action]
 Description = kiro-hwd: NVIDIA 620 flip-timeout option...
 When = PostTransaction
-Exec = /usr/bin/kiro-hwd flip-fix
+Exec = /usr/bin/kiro-hwd flip-fix --no-initramfs

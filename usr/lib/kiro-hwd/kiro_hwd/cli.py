@@ -78,7 +78,7 @@ def cmd_power(_args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_flip_fix(_args: argparse.Namespace) -> int:
+def cmd_flip_fix(args: argparse.Namespace) -> int:
     """Write or remove the NVIDIA 620 flip-timeout option to match nvidia-utils (run by a pacman hook)."""
     conf_dir = _modprobe_dir()
     version = apply.nvidia_utils_version()
@@ -90,8 +90,11 @@ def cmd_flip_fix(_args: argparse.Namespace) -> int:
         print(f"Wrote    {written} (nvidia-utils {version})")
     else:
         print(f"Removed  {conf_dir / apply.FLIP_FILE} (nvidia-utils {version or 'not installed'})")
-    # With nvidia in the initramfs (kiro-hwd's early KMS file) its modprobe options are baked in there too
-    if (apply.MKINITCPIO_DIR / "10-kiro-hwd.conf").is_file() and conf_dir == apply.MODPROBE_DIR:
+    # With nvidia in the initramfs (kiro-hwd's early KMS file) its modprobe options are baked in there too. The pacman
+    # hook passes --no-initramfs: a driver change also changes dkms.conf, so 90-mkinitcpio-install rebuilds after
+    # DKMS has built the new modules; rebuilding here would run before that.
+    if (not args.no_initramfs and (apply.MKINITCPIO_DIR / "10-kiro-hwd.conf").is_file()
+            and conf_dir == apply.MODPROBE_DIR):
         subprocess.run(["mkinitcpio", "-P"], check=True)
     return 0
 
@@ -159,8 +162,9 @@ def main(argv: list[str] | None = None) -> int:
     install.add_argument("--dry-run", action="store_true", help="show the packages and repos, install nothing")
     install.set_defaults(func=cmd_install)
     sub.add_parser("power", help="write or remove the Turing laptop power option only").set_defaults(func=cmd_power)
-    sub.add_parser("flip-fix", help="write or remove the NVIDIA 620 flip-timeout option").set_defaults(
-        func=cmd_flip_fix)
+    flip = sub.add_parser("flip-fix", help="write or remove the NVIDIA 620 flip-timeout option")
+    flip.add_argument("--no-initramfs", action="store_true", help="never run mkinitcpio (used by the pacman hook)")
+    flip.set_defaults(func=cmd_flip_fix)
     args = parser.parse_args(argv)
     if args.version:
         print(_version())

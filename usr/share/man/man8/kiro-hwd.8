@@ -13,6 +13,7 @@ kiro-hwd \- pick and install the NVIDIA driver for this machine
 .B kiro-hwd power
 .br
 .B kiro-hwd flip\-fix
+.RB [ \-\-no\-initramfs ]
 .SH DESCRIPTION
 .B kiro-hwd
 reads the display devices from sysfs, looks up each NVIDIA device ID in the PCI ID lists mirrored from
@@ -54,8 +55,10 @@ everywhere else. Runs on a kiro-hwd upgrade.
 While the installed nvidia-utils is a 620.x build, write /etc/modprobe.d/11-kiro-hwd-flip.conf
 (options nvidia_modeset opportunistic_flip_sync=0) against NVIDIA bug 7126445: a black screen at the Wayland login
 with two or more screens. Otherwise remove it. When the file changed and nvidia is in the initramfs
-(10-kiro-hwd.conf), run mkinitcpio -P. Run by /usr/share/libalpm/hooks/60-kiro-hwd-flip.hook whenever nvidia-utils
-is installed, upgraded or removed.
+(10-kiro-hwd.conf), run mkinitcpio -P, unless
+.B \-\-no\-initramfs
+is given. Run by /usr/share/libalpm/hooks/60-kiro-hwd-flip.hook (with \-\-no\-initramfs: a driver change also triggers
+the mkinitcpio hook, which rebuilds after DKMS) whenever nvidia-utils is installed, upgraded or removed.
 .SH ENVIRONMENT
 .TP
 .B KIRO_HWD_SYSFS, KIRO_HWD_CHASSIS

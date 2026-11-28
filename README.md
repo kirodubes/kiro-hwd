@@ -29,7 +29,8 @@ While `nvidia-utils` is a 620.x build, kiro-hwd writes `/etc/modprobe.d/11-kiro-
 screen at the Wayland login with two or more screens. The pacman hook `60-kiro-hwd-flip.hook` runs
 `kiro-hwd flip-fix` whenever nvidia-utils is installed, upgraded or removed, so the file follows the driver on every
 install path (also the ISO's baked-in driver, where `kiro-hwd install` doesn't run) and goes away with a fixed driver.
-When nvidia is in the initramfs (`10-kiro-hwd.conf`), `flip-fix` rebuilds it.
+When nvidia is in the initramfs (`10-kiro-hwd.conf`), `flip-fix` rebuilds it; the hook passes `--no-initramfs`,
+because a driver change also triggers `90-mkinitcpio-install.hook`, which rebuilds after DKMS.
 
 The Kiro installer runs `kiro-hwd install` on the boot entry "NVIDIA proprietary, auto-detect"
 (`driver=nonfreechwd`).
