@@ -1,4 +1,4 @@
-"""Command line: kiro-hwd detect | kiro-hwd install [--dry-run] | kiro-hwd power."""
+"""Command line: kiro-hwd detect | kiro-hwd install [--dry-run] | kiro-hwd power | kiro-hwd flip-fix."""
 
 import argparse
 import os
@@ -54,6 +54,9 @@ def _print_choice(choice: profiles.Choice, gpus: list[detect.Gpu]) -> None:
         print(f"Reason   {reason}")
     if apply.needs_turing_power(choice, _turing_ids()):
         print("Reason   Turing laptop: NVreg_DynamicPowerManagement=0x02")
+    version = apply.nvidia_utils_version()
+    if apply.needs_flip_fix(version):
+        print(f"Reason   nvidia-utils {version}: opportunistic_flip_sync=0 (NVIDIA bug 7126445)")
 
 
 def cmd_detect(_args: argparse.Namespace) -> int:
@@ -72,6 +75,24 @@ def cmd_power(_args: argparse.Namespace) -> int:
         print(f"Wrote    {path}")
     if not written:
         print(f"Removed  {conf_dir / apply.MODPROBE_FILE} (if present): not a Turing laptop")
+    return 0
+
+
+def cmd_flip_fix(_args: argparse.Namespace) -> int:
+    """Write or remove the NVIDIA 620 flip-timeout option to match nvidia-utils (run by a pacman hook)."""
+    conf_dir = _modprobe_dir()
+    version = apply.nvidia_utils_version()
+    written, changed = apply.write_flip_fix(version, conf_dir)
+    if not changed:
+        print(f"Nothing to do (nvidia-utils {version or 'not installed'})")
+        return 0
+    if written:
+        print(f"Wrote    {written} (nvidia-utils {version})")
+    else:
+        print(f"Removed  {conf_dir / apply.FLIP_FILE} (nvidia-utils {version or 'not installed'})")
+    # With nvidia in the initramfs (kiro-hwd's early KMS file) its modprobe options are baked in there too
+    if (apply.MKINITCPIO_DIR / "10-kiro-hwd.conf").is_file() and conf_dir == apply.MODPROBE_DIR:
+        subprocess.run(["mkinitcpio", "-P"], check=True)
     return 0
 
 
@@ -118,6 +139,9 @@ def cmd_install(args: argparse.Namespace) -> int:
 
     for path in apply.write_mkinitcpio(choice) + apply.write_modprobe(choice, _turing_ids(), _modprobe_dir()):
         print(f"Wrote    {path}")
+    flip, _changed = apply.write_flip_fix(apply.nvidia_utils_version(), _modprobe_dir())
+    if flip:
+        print(f"Wrote    {flip}")
     if choice.prime:
         apply.enable_services(prime.services)
     apply.write_state(choice, found, _version())
@@ -135,6 +159,8 @@ def main(argv: list[str] | None = None) -> int:
     install.add_argument("--dry-run", action="store_true", help="show the packages and repos, install nothing")
     install.set_defaults(func=cmd_install)
     sub.add_parser("power", help="write or remove the Turing laptop power option only").set_defaults(func=cmd_power)
+    sub.add_parser("flip-fix", help="write or remove the NVIDIA 620 flip-timeout option").set_defaults(
+        func=cmd_flip_fix)
     args = parser.parse_args(argv)
     if args.version:
         print(_version())

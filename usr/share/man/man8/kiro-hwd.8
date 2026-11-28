@@ -1,4 +1,4 @@
-.TH KIRO-HWD 8 "2026-11-03" "kiro-hwd" "Kiro system tools"
+.TH KIRO-HWD 8 "2026-11-28" "kiro-hwd" "Kiro system tools"
 .SH NAME
 kiro-hwd \- pick and install the NVIDIA driver for this machine
 .SH SYNOPSIS
@@ -9,6 +9,10 @@ kiro-hwd \- pick and install the NVIDIA driver for this machine
 .br
 .B kiro-hwd install
 .RB [ \-\-dry\-run ]
+.br
+.B kiro-hwd power
+.br
+.B kiro-hwd flip\-fix
 .SH DESCRIPTION
 .B kiro-hwd
 reads the display devices from sysfs, looks up each NVIDIA device ID in the PCI ID lists mirrored from
@@ -41,10 +45,24 @@ another NVIDIA driver branch is installed. Run mkinitcpio -P afterwards (the Kir
 .TP
 .B install \-\-dry\-run
 Show the packages and the repo each comes from; install nothing. Needs no root.
+.TP
+.B power
+Write /etc/modprobe.d/10-kiro-hwd-nvidia.conf (NVreg_DynamicPowerManagement=0x02) on a Turing laptop, remove it
+everywhere else. Runs on a kiro-hwd upgrade.
+.TP
+.B flip\-fix
+While the installed nvidia-utils is a 620.x build, write /etc/modprobe.d/11-kiro-hwd-flip.conf
+(options nvidia_modeset opportunistic_flip_sync=0) against NVIDIA bug 7126445: a black screen at the Wayland login
+with two or more screens. Otherwise remove it. When the file changed and nvidia is in the initramfs
+(10-kiro-hwd.conf), run mkinitcpio -P. Run by /usr/share/libalpm/hooks/60-kiro-hwd-flip.hook whenever nvidia-utils
+is installed, upgraded or removed.
 .SH ENVIRONMENT
 .TP
 .B KIRO_HWD_SYSFS, KIRO_HWD_CHASSIS
 For testing only: read the PCI devices from another directory and use this chassis type.
+.TP
+.B KIRO_HWD_MODPROBE_DIR
+For testing only: write the modprobe.d files to another directory (no initramfs rebuild then).
 .SH FILES
 .TP
 /usr/share/kiro-hwd/profiles.toml

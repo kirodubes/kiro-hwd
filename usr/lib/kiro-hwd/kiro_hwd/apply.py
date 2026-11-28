@@ -12,6 +12,15 @@ MODPROBE_FILE = "10-kiro-hwd-nvidia.conf"
 # Fine-grained runtime D3: Turing laptops need it set; Ampere+ get it from the driver default, older cards
 # and desktops don't support it.
 TURING_POWER = "options nvidia NVreg_DynamicPowerManagement=0x02\n"
+FLIP_FILE = "11-kiro-hwd-flip.conf"
+# NVIDIA bug 7126445 (open-gpu-kernel-modules #1553): on 620.x a Wayland compositor gets "Flip event timeout" and a
+# black screen at login with 2+ screens. This option cleared it on riker (RTX 2060, 2 screens, 17 tests). The file
+# follows the installed nvidia-utils version: drop a branch here once NVIDIA ships a fixed driver in it.
+FLIP_BRANCHES = ("620.",)
+FLIP_FIX = (
+    "# NVIDIA 620.x: black screen at the Wayland login with 2+ screens (NVIDIA bug 7126445).\n"
+    "options nvidia_modeset opportunistic_flip_sync=0\n"
+)
 STATE_FILE = Path("/var/lib/kiro-hwd/state")
 NVIDIA_MODULES = "MODULES+=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)\n"
 DROP_KMS_HOOK = "HOOKS=(${HOOKS[@]/kms/})\n"
@@ -77,6 +86,33 @@ def write_modprobe(choice: Choice, turing_ids: set[str], conf_dir: Path = MODPRO
     conf_dir.mkdir(parents=True, exist_ok=True)
     conf.write_text(HEADER + TURING_POWER)
     return [conf]
+
+
+def nvidia_utils_version() -> str | None:
+    """Installed nvidia-utils version, or None when it is not installed."""
+    out = subprocess.run(["pacman", "-Q", "nvidia-utils"], capture_output=True, text=True, check=False)
+    parts = out.stdout.split()
+    return parts[1] if out.returncode == 0 and len(parts) == 2 else None
+
+
+def needs_flip_fix(version: str | None) -> bool:
+    """True for an nvidia-utils version on a branch with the flip-timeout bug."""
+    return bool(version and version.startswith(FLIP_BRANCHES))
+
+
+def write_flip_fix(version: str | None, conf_dir: Path = MODPROBE_DIR) -> tuple[Path | None, bool]:
+    """Write or remove the flip-timeout option; return the file written (or None) and whether anything changed."""
+    conf = conf_dir / FLIP_FILE
+    if not needs_flip_fix(version):
+        existed = conf.exists()
+        conf.unlink(missing_ok=True)
+        return None, existed
+    text = HEADER + FLIP_FIX
+    if conf.is_file() and conf.read_text() == text:
+        return conf, False
+    conf_dir.mkdir(parents=True, exist_ok=True)
+    conf.write_text(text)
+    return conf, True
 
 
 def enable_services(services: list[str]) -> None:

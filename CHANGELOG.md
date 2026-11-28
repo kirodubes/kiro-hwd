@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## 2026.11.28
+
+### What Changed
+- **NVIDIA 620: no more black screen at the Wayland login with two or more screens.** NVIDIA's 620.70.06 and
+  620.73.04 drivers lose the first frame when a Wayland compositor (Hyprland, KWin, …) takes over the screens: the
+  desktop runs, the screens stay black. NVIDIA tracks it as bug 7126445
+  ([open-gpu-kernel-modules #1553](https://github.com/NVIDIA/open-gpu-kernel-modules/issues/1553)); no fixed driver
+  yet. While `nvidia-utils` is a 620.x build, kiro-hwd now writes `/etc/modprobe.d/11-kiro-hwd-flip.conf` with
+  `options nvidia_modeset opportunistic_flip_sync=0`, and removes it again with any other driver.
+- Found on riker (RTX 2060, two screens) with a fresh KIROTUX Hyprland DMS v26.11.28 install: black at the first
+  login. With the option: 4 of 4 boots + logins clean, 3 suspends clean, 10 screen sleep/wake cycles with the picture
+  back every time. Promised to KiroTux buyers in kiro-discussions #137.
+
+### Technical Details
+- `apply.py`: `nvidia_utils_version()` (`pacman -Q nvidia-utils`), `needs_flip_fix()` (`FLIP_BRANCHES = ("620.",)`;
+  drop the branch once NVIDIA ships a fix in it), `write_flip_fix()` returns the file and whether it changed.
+- New command `kiro-hwd flip-fix`; when the file changed and nvidia is in the initramfs (`10-kiro-hwd.conf`), it runs
+  `mkinitcpio -P`, because the modprobe options are baked into the initramfs then. `kiro-hwd install` writes the file
+  too, and `detect`/`install` print the reason.
+- New pacman hook `usr/share/libalpm/hooks/60-kiro-hwd-flip.hook` on install, upgrade and removal of `nvidia-utils`.
+  Version-based on purpose: the installer's default `driver=nonfree` entry keeps the ISO's baked-in driver and never
+  runs `kiro-hwd install`, so only a hook reaches that path (also the ISO build itself, hence the live session).
+  It runs before `90-mkinitcpio-install.hook`.
+- Build recipe `kiro-hwd.install`: `post_install` and `post_upgrade` run `flip-fix` too (safe in the ISO chroot).
+- Test: `test_flip_fix_follows_nvidia_utils_version` (620 written, unchanged rerun, 615 / 625 / none removed).
+
+### Files Modified
+- `usr/lib/kiro-hwd/kiro_hwd/apply.py`, `usr/lib/kiro-hwd/kiro_hwd/cli.py`
+- `usr/share/libalpm/hooks/60-kiro-hwd-flip.hook` (new)
+- `tests/test_kiro_hwd.py`, `usr/share/man/man8/kiro-hwd.8`, `README.md`, `CHANGELOG.md`
+- Outside this repo: `~/KIRO-PKG-BUILD-APPS/kiro-hwd/kiro-hwd.install`
+
 ## 2026.11.24
 
 ### What Changed

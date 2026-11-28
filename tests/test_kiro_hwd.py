@@ -149,6 +149,18 @@ class ApplyTests(unittest.TestCase):
                 if wanted:
                     self.assertIn("NVreg_DynamicPowerManagement=0x02", conf.read_text())
 
+    def test_flip_fix_follows_nvidia_utils_version(self):
+        conf = self.root / apply.FLIP_FILE
+        self.assertEqual(apply.write_flip_fix("620.73.04-1", self.root), (conf, True))
+        self.assertIn("opportunistic_flip_sync=0", conf.read_text())
+        self.assertEqual(apply.write_flip_fix("620.73.04-2", self.root), (conf, False))
+        for version in ("615.78.08-2", "625.10.01-1", None):
+            apply.write_flip_fix("620.70.06-1", self.root)
+            with self.subTest(version=version):
+                self.assertEqual(apply.write_flip_fix(version, self.root), (None, True))
+                self.assertFalse(conf.exists())
+                self.assertEqual(apply.write_flip_fix(version, self.root), (None, False))
+
     def test_state_file(self):
         state = self.root / "state"
         apply.write_state(profiles.Choice(self.open, self.gpu), [("extra", "nvidia-utils")], "kiro-hwd 26.11-01", state)

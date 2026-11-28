@@ -16,11 +16,20 @@ kiro-hwd detect               # what is in this machine, which profile, why
 kiro-hwd install --dry-run    # which packages from which repo
 sudo kiro-hwd install         # install it
 sudo kiro-hwd power           # only the Turing laptop power option (runs on package upgrade)
+sudo kiro-hwd flip-fix        # only the NVIDIA 620 flip-timeout option (pacman hook on nvidia-utils)
 ```
 
 On a laptop with a Turing GPU (`usr/share/kiro-hwd/turing.ids`, Kiro's own list) kiro-hwd writes
 `/etc/modprobe.d/10-kiro-hwd-nvidia.conf` with `NVreg_DynamicPowerManagement=0x02`; on every other machine it
 removes that file.
+
+While `nvidia-utils` is a 620.x build, kiro-hwd writes `/etc/modprobe.d/11-kiro-hwd-flip.conf` with
+`options nvidia_modeset opportunistic_flip_sync=0`: NVIDIA bug 7126445
+([open-gpu-kernel-modules #1553](https://github.com/NVIDIA/open-gpu-kernel-modules/issues/1553)) gives a black
+screen at the Wayland login with two or more screens. The pacman hook `60-kiro-hwd-flip.hook` runs
+`kiro-hwd flip-fix` whenever nvidia-utils is installed, upgraded or removed, so the file follows the driver on every
+install path (also the ISO's baked-in driver, where `kiro-hwd install` doesn't run) and goes away with a fixed driver.
+When nvidia is in the initramfs (`10-kiro-hwd.conf`), `flip-fix` rebuilds it.
 
 The Kiro installer runs `kiro-hwd install` on the boot entry "NVIDIA proprietary, auto-detect"
 (`driver=nonfreechwd`).
